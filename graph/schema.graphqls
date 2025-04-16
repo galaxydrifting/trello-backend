@@ -1,0 +1,12 @@
+# GraphQL 原理圖，定義 User type 與 user 查詢
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  createdAt: String!
+}
+
+type Query {
+  user(id: ID!): User
+}

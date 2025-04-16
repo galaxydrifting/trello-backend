@@ -8,9 +8,16 @@ import (
 	"gorm.io/gorm"
 
 	"trello-backend/docs"
+	"trello-backend/graph/generated"
+	"trello-backend/graph/resolver"
 	"trello-backend/internal/app"
 	"trello-backend/internal/config"
+	"trello-backend/internal/repositories"
 	"trello-backend/internal/routes"
+
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/playground"
 )
 
 // @title Trello 後端 API
@@ -69,6 +76,23 @@ func main() {
 
 	// 設定所有路由
 	router.SetupRoutes()
+
+	// ===== GraphQL 與 Playground 設定 =====
+	userRepo := repositories.NewUserRepository(db)
+	gqlResolver := &resolver.Resolver{UserRepo: userRepo}
+	gqlHandler := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: gqlResolver}))
+	gqlHandler.AddTransport(transport.POST{})
+	gqlHandler.AddTransport(transport.GET{})
+	gqlHandler.AddTransport(transport.Options{})
+	gqlHandler.AddTransport(transport.MultipartForm{})
+
+	engine.Any("/graphql", func(c *gin.Context) {
+		gqlHandler.ServeHTTP(c.Writer, c.Request)
+	})
+	engine.GET("/playground", func(c *gin.Context) {
+		playground.Handler("GraphQL Playground", "/graphql").ServeHTTP(c.Writer, c.Request)
+	})
+	// ===== End =====
 
 	// 啟動伺服器
 	if err := engine.Run(":8080"); err != nil {
