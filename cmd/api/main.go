@@ -17,7 +17,9 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gin-contrib/cors"
 )
 
 // @title Trello 後端 API
@@ -67,6 +69,13 @@ func main() {
 
 	// 設定路由
 	engine := gin.Default()
+	engine.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 	router := routes.NewRouter(engine, cfg.JWTSecret, cfg)
 
 	// 註冊所有 handlers
@@ -81,6 +90,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	gqlResolver := &resolver.Resolver{UserRepo: userRepo}
 	gqlHandler := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: gqlResolver}))
+	gqlHandler.Use(extension.Introspection{})
 	gqlHandler.AddTransport(transport.POST{})
 	gqlHandler.AddTransport(transport.GET{})
 	gqlHandler.AddTransport(transport.Options{})
