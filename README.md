@@ -49,7 +49,12 @@ docker compose -f .devcontainer/docker-compose.yml up -d
 - `cmd/`：主程式入口
 - `internal/`：商業邏輯、資料庫、服務、路由
 - `graph/`：GraphQL schema 與 resolver
-- `docs/`：Swagger 文件
+- `docs/`：Swagger 文件與技術文件
+
+## 技術文件
+- [Null 安全性：Banishing Null with Non-Nullable References](docs/null-safety.md)
+  - 了解如何在 Go 專案中實踐非空引用原則
+  - 減少 nil 引用錯誤，提高程式碼品質
 
 ## 測試
 建議於專案根目錄執行下列指令，獲得詳細測試摘要：
